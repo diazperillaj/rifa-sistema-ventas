@@ -2,7 +2,6 @@ from typing import ClassVar
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
-from app.core.forms import PHONE_PATTERN
 from app.models.sale import MAX_NUMBER, MIN_NUMBER
 
 
@@ -11,16 +10,15 @@ class SaleForm(BaseModel):
 
     error_messages: ClassVar[dict[str, str]] = {
         "number": "Número no válido",
-        "buyer_phone": "Ingresa un teléfono válido",
     }
 
     number: int = Field(ge=MIN_NUMBER, le=MAX_NUMBER)
     buyer_name: str = Field(min_length=2, max_length=120)
-    buyer_phone: str = Field(pattern=PHONE_PATTERN)
+    buyer_phone: str | None = Field(default=None, max_length=30)
     is_paid: bool = False  # checkbox sin marcar no se envía
     notes: str | None = Field(default=None, max_length=500)
 
-    @field_validator("notes", mode="before")
+    @field_validator("buyer_phone", "notes", mode="before")
     @classmethod
-    def empty_notes_to_none(cls, value):
+    def empty_to_none(cls, value):
         return value.strip() or None if isinstance(value, str) else value

@@ -3,7 +3,7 @@
 
 {{ ui.field("buyer_name", "Nombre del comprador", value=values.get("buyer_name"), error=errors.get("buyer_name"),
             required=True, attrs={"autocomplete": "off", "autocapitalize": "words"}) }}
-{{ ui.field("buyer_phone", "Teléfono", type="tel", value=values.get("buyer_phone"), error=errors.get("buyer_phone"),
-            required=True, attrs={"inputmode": "tel", "autocomplete": "off"}) }}
+{{ ui.field("buyer_phone", "Teléfono (opcional)", type="tel", value=values.get("buyer_phone"), error=errors.get("buyer_phone"),
+            attrs={"inputmode": "tel", "autocomplete": "off"}) }}
 {{ ui.checkbox("is_paid", "Ya pagó", checked=values.get("is_paid"), hint="Márcalo si ya recibiste el dinero") }}
 {{ ui.textarea("notes", "Notas (opcional)", value=values.get("notes"), error=errors.get("notes")) }}

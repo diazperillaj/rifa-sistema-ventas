@@ -2,7 +2,6 @@ from typing import ClassVar
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
-from app.core.forms import PHONE_PATTERN
 from app.models import UserRole
 
 
@@ -11,12 +10,11 @@ class UserBase(BaseModel):
 
     error_messages: ClassVar[dict[str, str]] = {
         "username": "Usa de 3 a 50 caracteres: letras minúsculas, números, punto, guion o guion bajo",
-        "phone": "Ingresa un teléfono válido",
     }
 
     full_name: str = Field(min_length=2, max_length=120)
     username: str = Field(pattern=r"^[a-z0-9._-]{3,50}$")
-    phone: str | None = Field(default=None, pattern=PHONE_PATTERN)
+    phone: str | None = Field(default=None, max_length=30)
     role: UserRole = UserRole.SELLER
 
     @field_validator("username", mode="before")

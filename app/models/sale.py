@@ -26,7 +26,7 @@ class Sale(CreatedAtMixin, UpdatedAtMixin, Base):
         ForeignKey("users.id", ondelete="RESTRICT"), index=True, nullable=False
     )
     buyer_name: Mapped[str] = mapped_column(String(120), nullable=False)
-    buyer_phone: Mapped[str] = mapped_column(String(30), nullable=False)
+    buyer_phone: Mapped[str | None] = mapped_column(String(30))
     is_paid: Mapped[bool] = mapped_column(Boolean, server_default=false(), nullable=False)
     notes: Mapped[str | None] = mapped_column(Text)
 

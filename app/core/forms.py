@@ -4,7 +4,6 @@ from pydantic import BaseModel, ValidationError
 from app.core.security import CSRF_FORM_FIELD
 
 FORM_ERROR = "form"  # clave para errores que no son de un campo
-PHONE_PATTERN = r"^\+?[0-9 ]{7,20}$"
 
 
 def safe_next(value: str | None, default: str) -> str:

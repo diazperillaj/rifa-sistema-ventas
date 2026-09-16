@@ -7,7 +7,7 @@ Aplicación web para registrar y controlar la venta de números de una rifa de 1
 **Vendedores**
 
 - Tablero con los números disponibles y vendidos, actualizado periódicamente.
-- Registro de ventas con nombre y teléfono del comprador, estado de pago y notas.
+- Registro de ventas con nombre del comprador, teléfono opcional, estado de pago y notas.
 - Consulta, edición y eliminación de sus propias ventas.
 - Resumen de lo recaudado y lo pendiente por cobrar.
 

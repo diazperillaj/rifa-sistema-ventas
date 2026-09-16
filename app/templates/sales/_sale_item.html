@@ -7,8 +7,13 @@
   <div class="min-w-0 flex-1">
     <p class="truncate font-medium">{{ sale.buyer_name }}</p>
     <p class="truncate text-sm text-muted">
-      <a href="tel:{{ sale.buyer_phone | replace(' ', '') }}" class="tabular-nums hover:text-ink">{{ sale.buyer_phone }}</a>
-      <span class="hidden sm:inline">· {{ sale.created_at | datetime }}</span>
+      {% if sale.buyer_phone %}
+        <a href="tel:{{ sale.buyer_phone | replace(' ', '') }}" class="tabular-nums hover:text-ink">{{ sale.buyer_phone }}</a>
+        <span class="hidden sm:inline">· {{ sale.created_at | datetime }}</span>
+      {% else %}
+        <span class="sm:hidden">Sin teléfono</span>
+        <span class="hidden sm:inline">{{ sale.created_at | datetime }}</span>
+      {% endif %}
     </p>
     {% if sale.notes %}<p class="mt-0.5 truncate text-sm text-muted">{{ sale.notes }}</p>{% endif %}
   </div>

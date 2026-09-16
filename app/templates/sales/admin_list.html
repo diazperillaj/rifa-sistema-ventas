@@ -51,7 +51,7 @@
               <span class="w-8 text-lg font-bold tabular-nums">{{ sale.number | number }}</span>
               <div class="min-w-0 flex-1">
                 <p class="truncate font-medium">{{ sale.buyer_name }}</p>
-                <p class="truncate text-sm text-muted">{{ sale.seller.full_name }} · <span class="tabular-nums">{{ sale.buyer_phone }}</span></p>
+                <p class="truncate text-sm text-muted">{{ sale.seller.full_name }}{% if sale.buyer_phone %} · <span class="tabular-nums">{{ sale.buyer_phone }}</span>{% endif %}</p>
               </div>
               {{ ui.badge("Pagado", "success") if sale.is_paid else ui.badge("Pendiente", "warning") }}
             </a>
@@ -81,7 +81,7 @@
                   <p class="font-medium">{{ sale.buyer_name }}</p>
                   {% if sale.notes %}<p class="max-w-56 truncate text-xs text-muted" title="{{ sale.notes }}">{{ sale.notes }}</p>{% endif %}
                 </td>
-                <td class="px-4 py-3 text-muted tabular-nums">{{ sale.buyer_phone }}</td>
+                <td class="px-4 py-3 text-muted tabular-nums">{{ sale.buyer_phone or "—" }}</td>
                 <td class="px-4 py-3">{{ sale.seller.full_name }}</td>
                 <td class="px-4 py-3 whitespace-nowrap text-muted tabular-nums">{{ sale.created_at | datetime }}</td>
                 <td class="px-4 py-3">{{ ui.badge("Pagado", "success") if sale.is_paid else ui.badge("Pendiente", "warning") }}</td>

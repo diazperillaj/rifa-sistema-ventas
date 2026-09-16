@@ -37,7 +37,7 @@ def _sale_values(sale: Sale) -> dict:
     return {
         "number": sale.number,
         "buyer_name": sale.buyer_name,
-        "buyer_phone": sale.buyer_phone,
+        "buyer_phone": sale.buyer_phone or "",
         "is_paid": sale.is_paid,
         "notes": sale.notes or "",
     }
