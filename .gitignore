@@ -1,0 +1,27 @@
+# Entorno
+.env
+env/
+.venv/
+
+# Python
+__pycache__/
+*.pyc
+
+# Generados
+app/static/css/app.css
+tailwindcss
+tailwindcss.exe
+
+# Backups de la base de datos
+*.sql
+*.sql.gz
+backups/
+
+# Documentación interna
+ARQUITECTURA.md
+DESPLIEGUE.md
+
+# Editor
+.vscode/
+.idea/
+.claude/

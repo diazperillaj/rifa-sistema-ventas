@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% import "components/ui.html" as ui %}
+
+{% block title %}Panel · {{ raffle.name }}{% endblock %}
+
+{% block content %}
+  {% set subtitle = raffle.name ~ ((" · Sorteo el " ~ (raffle.draw_date | date)) if raffle.draw_date else "") %}
+  {% call ui.page_header("Panel", subtitle) %}
+    {{ ui.button("Configurar rifa", "secondary", href="/admin/rifa") }}
+  {% endcall %}
+
+  {% if raffle.ticket_price == 0 %}
+    <div class="mb-6">{{ ui.alert("Aún no has configurado el valor del número. Los montos aparecen en $ 0.", "warning") }}</div>
+  {% endif %}
+
+  {#- Todo el panel se actualiza solo cada 30 s -#}
+  <div id="dashboard"
+       hx-get="/admin" hx-select="#dashboard" hx-target="this" hx-swap="outerHTML" hx-disinherit="*"
+       hx-trigger="every 30s [document.visibilityState === 'visible']">
+
+    <section class="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      {{ ui.stat("Vendidos", stats.sold, "de 100 números") }}
+      {{ ui.stat("Disponibles", stats.available) }}
+      {{ ui.stat("Recaudado", stats.collected | money, stats.paid ~ (" pagado" if stats.paid == 1 else " pagados")) }}
+      {{ ui.stat("Por cobrar", stats.receivable | money, stats.pending ~ (" pendiente" if stats.pending == 1 else " pendientes")) }}
+    </section>
+
+    <div class="mt-4">
+      <div class="mb-2 flex items-baseline justify-between text-sm">
+        <span class="text-muted">Avance de la rifa</span>
+        <span class="font-semibold tabular-nums">{{ stats.progress }}%</span>
+      </div>
+      {{ ui.progress(stats.sold, 100) }}
+      {% if stats.expected_total %}
+        <p class="mt-2 text-xs text-muted">Si se venden todos los números: {{ stats.expected_total | money }}</p>
+      {% endif %}
+    </div>
+
+    <div class="mt-10 grid gap-8 lg:grid-cols-5">
+      {# Últimos vendidos #}
+      <section class="lg:col-span-3">
+        <div class="mb-3 flex items-baseline justify-between">
+          <h2 class="text-lg font-bold tracking-tight">Últimos vendidos</h2>
+          <a href="/admin/ventas" class="text-sm font-medium text-accent hover:text-accent-hover">Ver todas</a>
+        </div>
+
+        {% if latest %}
+          <ul class="divide-y divide-line rounded-xl border border-line bg-surface">
+            {% for sale in latest %}
+              <li>
+                <a href="/ventas/{{ sale.id }}/editar?next=/admin" class="flex items-center gap-4 p-4 transition-colors hover:bg-subtle/50">
+                  <span class="w-8 text-lg font-bold tabular-nums">{{ sale.number | number }}</span>
+                  <div class="min-w-0 flex-1">
+                    <p class="truncate font-medium">{{ sale.buyer_name }}</p>
+                    <p class="truncate text-sm text-muted">{{ sale.seller.full_name }} · {{ sale.created_at | datetime }}</p>
+                  </div>
+                  {{ ui.badge("Pagado", "success") if sale.is_paid else ui.badge("Pendiente", "warning") }}
+                </a>
+              </li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          {{ ui.empty_state("Aún no hay ventas", "Aquí aparecerán los últimos números vendidos.") }}
+        {% endif %}
+      </section>
+
+      {# Por vendedor #}
+      <section class="lg:col-span-2">
+        <div class="mb-3 flex items-baseline justify-between">
+          <h2 class="text-lg font-bold tracking-tight">Por vendedor</h2>
+          <a href="/admin/usuarios" class="text-sm font-medium text-accent hover:text-accent-hover">Usuarios</a>
+        </div>
+
+        {% if sellers %}
+          <ul class="divide-y divide-line rounded-xl border border-line bg-surface">
+            {% for s in sellers %}
+              <li>
+                <a href="/admin/ventas?vendedor={{ s.user.id }}" class="flex items-center gap-4 p-4 transition-colors hover:bg-subtle/50">
+                  <div class="min-w-0 flex-1">
+                    <p class="truncate font-medium {{ 'text-muted' if not s.user.is_active }}">
+                      {{ s.user.full_name }}{% if not s.user.is_active %} <span class="text-xs font-normal">(inactivo)</span>{% endif %}
+                    </p>
+                    <p class="text-sm text-muted tabular-nums">
+                      {{ s.collected | money }} recaudado{% if s.total - s.paid %} · {{ s.receivable | money }} por cobrar{% endif %}
+                    </p>
+                  </div>
+                  <div class="text-right">
+                    <p class="text-lg font-bold tabular-nums">{{ s.total }}</p>
+                    <p class="text-xs text-muted">{{ "número" if s.total == 1 else "números" }}</p>
+                  </div>
+                </a>
+              </li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          {{ ui.empty_state("Sin vendedores", "Crea usuarios para empezar a vender.") }}
+        {% endif %}
+      </section>
+    </div>
+  </div>
+{% endblock %}

@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% import "components/ui.html" as ui %}
+
+{% block title %}Usuarios · Rifa{% endblock %}
+
+{% macro role_badge(u) -%}
+  {{ ui.badge("Admin", "accent") if u.is_admin else ui.badge("Vendedor") }}
+{%- endmacro %}
+
+{% block content %}
+  {% call ui.page_header("Usuarios", rows | length ~ (" usuario" if rows | length == 1 else " usuarios")) %}
+    {{ ui.button("Nuevo usuario", href="/admin/usuarios/nuevo") }}
+  {% endcall %}
+
+  {% if not rows %}
+    {{ ui.empty_state("No hay usuarios", "Crea el primer vendedor para empezar.") }}
+  {% else %}
+    {# Móvil #}
+    <ul class="divide-y divide-line rounded-xl border border-line bg-surface md:hidden">
+      {% for u, sales_count in rows %}
+        <li>
+          <a href="/admin/usuarios/{{ u.id }}/editar" class="flex items-center gap-4 p-4 active:bg-subtle {{ 'opacity-60' if not u.is_active }}">
+            <div class="min-w-0 flex-1">
+              <p class="truncate font-medium">{{ u.full_name }}</p>
+              <p class="truncate text-sm text-muted">@{{ u.username }} · {{ sales_count }} {{ "venta" if sales_count == 1 else "ventas" }}</p>
+            </div>
+            <div class="flex shrink-0 flex-col items-end gap-1">
+              {{ role_badge(u) }}
+              {% if not u.is_active %}{{ ui.badge("Inactivo", "danger") }}{% endif %}
+            </div>
+          </a>
+        </li>
+      {% endfor %}
+    </ul>
+
+    {# Escritorio #}
+    <div class="hidden overflow-hidden rounded-xl border border-line bg-surface md:block">
+      <table class="w-full text-left text-sm">
+        <thead class="border-b border-line bg-subtle/60 text-xs text-muted uppercase">
+          <tr>
+            <th class="px-4 py-3 font-semibold">Nombre</th>
+            <th class="px-4 py-3 font-semibold">Usuario</th>
+            <th class="px-4 py-3 font-semibold">Teléfono</th>
+            <th class="px-4 py-3 font-semibold">Rol</th>
+            <th class="px-4 py-3 font-semibold">Estado</th>
+            <th class="px-4 py-3 text-right font-semibold">Ventas</th>
+            <th class="px-4 py-3"><span class="sr-only">Acciones</span></th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-line">
+          {% for u, sales_count in rows %}
+            <tr class="hover:bg-subtle/50 {{ 'text-muted' if not u.is_active }}">
+              <td class="px-4 py-3 font-medium">{{ u.full_name }}</td>
+              <td class="px-4 py-3 text-muted">@{{ u.username }}</td>
+              <td class="px-4 py-3 text-muted tabular-nums">{{ u.phone or "—" }}</td>
+              <td class="px-4 py-3">{{ role_badge(u) }}</td>
+              <td class="px-4 py-3">{{ ui.badge("Activo", "success") if u.is_active else ui.badge("Inactivo", "danger") }}</td>
+              <td class="px-4 py-3 text-right tabular-nums">{{ sales_count }}</td>
+              <td class="px-4 py-3 text-right">
+                <a href="/admin/usuarios/{{ u.id }}/editar" class="font-medium text-accent hover:text-accent-hover">Editar</a>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% endif %}
+{% endblock %}

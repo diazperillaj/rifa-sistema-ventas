@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% import "components/ui.html" as ui %}
+
+{% block title %}Editar venta · Rifa{% endblock %}
+
+{% block content %}
+  <div class="mx-auto max-w-xl">
+    <a href="{{ next }}" class="text-sm font-medium text-muted hover:text-ink">← Volver</a>
+
+    <div class="mt-3">
+      {% set seller_text = "Vendida por ti" if sale.seller_id == current_user.id else "Vendida por " ~ sale.seller.full_name %}
+      {{ ui.page_header("Número " ~ (sale.number | number), seller_text ~ " · " ~ (sale.created_at | datetime)) }}
+    </div>
+
+    {% call ui.card("p-5") %}
+      <form method="post" action="/ventas/{{ sale.id }}/editar" class="space-y-4">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <input type="hidden" name="next" value="{{ next }}">
+
+        {% if errors.get("form") %}{{ ui.alert(errors.get("form"), "danger") }}{% endif %}
+
+        <div>
+          {{ ui.select("number", "Número", number_options, selected=values.get("number")) }}
+          {% if errors.get("number") %}<p class="mt-1.5 text-sm text-danger">{{ errors.get("number") }}</p>{% endif %}
+        </div>
+
+        {% include "sales/_fields.html" %}
+
+        <div class="flex flex-col-reverse gap-2 pt-2 sm:flex-row sm:justify-end">
+          {{ ui.button("Cancelar", "secondary", href=next) }}
+          {{ ui.button("Guardar cambios", type="submit") }}
+        </div>
+      </form>
+    {% endcall %}
+
+    <div class="mt-6">
+      {% call ui.card("p-5") %}
+        <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 class="font-bold tracking-tight">Eliminar venta</h2>
+            <p class="mt-1 text-sm text-muted">El número {{ sale.number | number }} volverá a estar disponible.</p>
+          </div>
+          <form method="post" action="/ventas/{{ sale.id }}/eliminar"
+                onsubmit="return confirm('¿Eliminar la venta del número {{ sale.number | number }}?')">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            <input type="hidden" name="next" value="{{ next }}">
+            {{ ui.button("Eliminar", "danger", type="submit", full=True) }}
+          </form>
+        </div>
+      {% endcall %}
+    </div>
+  </div>
+{% endblock %}

@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% import "components/ui.html" as ui %}
+
+{% block title %}Mis ventas · Rifa{% endblock %}
+
+{% block content %}
+  {% call ui.page_header("Mis ventas", "Toca el estado para marcar una venta como pagada o pendiente.") %}
+    {{ ui.button("Vender número", href="/numeros") }}
+  {% endcall %}
+
+  <section class="grid grid-cols-2 gap-3 lg:grid-cols-4">
+    {{ ui.stat("Vendidos", summary.total) }}
+    {{ ui.stat("Pagados", summary.paid, (summary.pending ~ " pendientes") if summary.pending else None) }}
+    {{ ui.stat("Recaudado", summary.collected | money) }}
+    {{ ui.stat("Por cobrar", summary.receivable | money) }}
+  </section>
+
+  <section class="mt-8">
+    {% if sales %}
+      <ul class="space-y-2">
+        {% for sale in sales %}{% include "sales/_sale_item.html" %}{% endfor %}
+      </ul>
+    {% else %}
+      {{ ui.empty_state("Aún no tienes ventas", "Elige un número disponible para registrar tu primera venta.") }}
+    {% endif %}
+  </section>
+{% endblock %}

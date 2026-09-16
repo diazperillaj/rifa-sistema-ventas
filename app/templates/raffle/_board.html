@@ -1,0 +1,40 @@
+{#- Tablero de números. Se actualiza solo cada 20 s (si la pestaña está visible y no hay un formulario abierto). -#}
+<section id="board"
+  hx-get="/numeros" hx-select="#board" hx-target="this" hx-swap="outerHTML" hx-disinherit="*"
+  hx-trigger="every 20s [document.visibilityState === 'visible' && !document.querySelector('#sheet *')]">
+
+  <div class="mb-3 flex items-baseline justify-between gap-4">
+    <p class="text-sm text-muted tabular-nums">
+      <span class="font-semibold text-ink">{{ board.available }}</span> disponibles ·
+      <span class="font-semibold text-ink">{{ board.sold }}</span> vendidos
+    </p>
+    {% if board.mine %}
+      <p class="text-sm text-muted tabular-nums">{{ board.mine }} {{ "tuyo" if board.mine == 1 else "tuyos" }}</p>
+    {% endif %}
+  </div>
+
+  {%- set cell = "flex aspect-square items-center justify-center rounded-lg text-base tabular-nums transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent" %}
+
+  <div class="grid grid-cols-5 gap-2 sm:grid-cols-10">
+    {% for c in board.cells %}
+      {% set label = c.number | number %}
+      {% if c.status == "available" %}
+        <a href="/ventas/nueva?numero={{ c.number }}"
+           hx-get="/ventas/nueva?numero={{ c.number }}" hx-target="#sheet" hx-swap="innerHTML"
+           class="{{ cell }} border border-line bg-surface font-semibold hover:border-accent hover:text-accent"
+           aria-label="Vender número {{ label }}">{{ label }}</a>
+      {% elif c.status == "mine" %}
+        <a href="/ventas/{{ c.sale_id }}/editar?next=/numeros"
+           class="{{ cell }} border border-accent bg-accent-soft font-semibold text-accent hover:bg-accent hover:text-white"
+           aria-label="Número {{ label }}, tu venta">{{ label }}</a>
+      {% elif c.sale_id %}
+        <a href="/ventas/{{ c.sale_id }}/editar?next=/numeros"
+           class="{{ cell }} bg-subtle font-medium text-muted/60 line-through hover:text-ink"
+           aria-label="Número {{ label }}, vendido">{{ label }}</a>
+      {% else %}
+        <span class="{{ cell }} bg-subtle font-medium text-muted/50 line-through"
+              aria-label="Número {{ label }}, vendido">{{ label }}</span>
+      {% endif %}
+    {% endfor %}
+  </div>
+</section>

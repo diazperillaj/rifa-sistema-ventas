@@ -1,0 +1,13 @@
+.git
+.env
+env/
+.venv/
+**/__pycache__
+**/*.pyc
+app/static/css/app.css
+tailwindcss
+tailwindcss.exe
+*.md
+*.sql
+docker-compose*.yml
+backups/

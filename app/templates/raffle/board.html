@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% import "components/ui.html" as ui %}
+
+{% block title %}Números · {{ raffle.name }}{% endblock %}
+
+{% block content %}
+  {% set subtitle = "Valor " ~ (raffle.ticket_price | money) ~ ((" · Sorteo el " ~ (raffle.draw_date | date)) if raffle.draw_date else "") %}
+  {% call ui.page_header(raffle.name, subtitle) %}
+    {% if current_user.is_admin %}{{ ui.button("Configurar rifa", "secondary", href="/admin/rifa") }}{% endif %}
+  {% endcall %}
+
+  {% if current_user.is_admin and raffle.ticket_price == 0 %}
+    <div class="mb-6">{{ ui.alert("Aún no has configurado el valor del número. Ve a Configurar rifa.", "warning") }}</div>
+  {% endif %}
+
+  {% include "raffle/_board.html" %}
+
+  <div class="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-xs text-muted">
+    <span class="flex items-center gap-1.5"><span class="size-3 rounded border border-line bg-surface"></span>Disponible</span>
+    <span class="flex items-center gap-1.5"><span class="size-3 rounded border border-accent bg-accent-soft"></span>Mis ventas</span>
+    <span class="flex items-center gap-1.5"><span class="size-3 rounded bg-subtle"></span>Vendido</span>
+  </div>
+{% endblock %}

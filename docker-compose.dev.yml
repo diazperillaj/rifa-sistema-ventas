@@ -1,0 +1,6 @@
+﻿# Solo para desarrollo local: expone nginx en http://localhost:8090
+# Uso: docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d --build
+services:
+  web:
+    ports:
+      - "8090:80"

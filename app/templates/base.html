@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="es" class="h-full">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#ffffff">
+  <title>{% block title %}Rifa{% endblock %}</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="/static/css/app.css?v={{ static_version }}">
+  <script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.4/dist/htmx.min.js" defer></script>
+</head>
+<body class="min-h-full bg-bg font-sans text-ink antialiased" hx-headers='{"X-CSRF-Token": "{{ csrf_token }}"}'>
+  {% set user = current_user | default(none) %}
+  {% set path = request.url.path %}
+
+  <header class="sticky top-0 z-30 border-b border-line bg-surface/95 backdrop-blur">
+    <div class="mx-auto flex h-14 max-w-5xl items-center justify-between gap-4 px-4">
+      <a href="/" class="text-[15px] font-bold tracking-tight">{% block brand %}Rifa{% endblock %}</a>
+
+      {% if user %}
+        <nav class="hidden items-center gap-1 md:flex">
+          {% for item in nav_items(user) %}
+            <a href="{{ item.href }}"
+               class="rounded-md px-3 py-1.5 text-sm font-medium transition-colors {{ 'bg-subtle text-ink' if is_active(path, item.href) else 'text-muted hover:text-ink' }}">
+              {{ item.label }}
+            </a>
+          {% endfor %}
+        </nav>
+
+        <div class="flex items-center gap-3">
+          <span class="hidden text-sm text-muted sm:inline">{{ user.full_name }}</span>
+          <form method="post" action="/logout">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            <button type="submit" class="text-sm font-medium text-muted transition-colors hover:text-ink">Salir</button>
+          </form>
+        </div>
+      {% endif %}
+    </div>
+  </header>
+
+  <main class="mx-auto max-w-5xl px-4 pt-6 {{ 'pb-28 md:pb-16' if user else 'pb-16' }}">
+    {% if flashes %}
+      {% import "components/ui.html" as ui %}
+      <div class="mb-6 space-y-2">
+        {% for f in flashes %}{{ ui.alert(f.message, f.variant) }}{% endfor %}
+      </div>
+    {% endif %}
+    {% block content %}{% endblock %}
+  </main>
+
+  {% if user %}
+    <nav class="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-surface md:hidden"
+         style="padding-bottom: env(safe-area-inset-bottom)">
+      <div class="mx-auto flex max-w-md">
+        {% for item in nav_items(user) %}
+          {% set active = is_active(path, item.href) %}
+          <a href="{{ item.href }}"
+             class="relative flex h-14 flex-1 items-center justify-center text-[13px] font-medium {{ 'text-ink' if active else 'text-muted' }}">
+            {% if active %}<span class="absolute inset-x-4 top-0 h-0.5 rounded-full bg-accent"></span>{% endif %}
+            {{ item.label }}
+          </a>
+        {% endfor %}
+      </div>
+    </nav>
+  {% endif %}
+
+  {# Contenedor del panel inferior (formularios que se abren con HTMX) #}
+  <div id="sheet"></div>
+  <script>
+    function closeSheet() { document.getElementById("sheet").replaceChildren(); }
+    document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeSheet(); });
+  </script>
+</body>
+</html>

@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% import "components/ui.html" as ui %}
+
+{% block title %}Configurar rifa · Rifa{% endblock %}
+
+{% block content %}
+  <div class="mx-auto max-w-xl">
+    <a href="/numeros" class="text-sm font-medium text-muted hover:text-ink">← Números</a>
+    <div class="mt-3">{{ ui.page_header("Configurar rifa", "Estos datos los ven todos los vendedores.") }}</div>
+
+    {% call ui.card("p-5") %}
+      <form method="post" action="/admin/rifa" class="space-y-4">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        {{ ui.field("name", "Nombre de la rifa", value=values.get("name"), error=errors.get("name"), required=True) }}
+        {{ ui.field("ticket_price", "Valor del número", value=values.get("ticket_price"), error=errors.get("ticket_price"),
+                    required=True, hint="En pesos, sin decimales. Ej: 10.000", attrs={"inputmode": "numeric"}) }}
+        {{ ui.field("draw_date", "Fecha del sorteo (opcional)", type="date", value=values.get("draw_date"),
+                    error=errors.get("draw_date")) }}
+        <div class="flex flex-col-reverse gap-2 pt-2 sm:flex-row sm:justify-end">
+          {{ ui.button("Cancelar", "secondary", href="/numeros") }}
+          {{ ui.button("Guardar", type="submit") }}
+        </div>
+      </form>
+    {% endcall %}
+  </div>
+{% endblock %}

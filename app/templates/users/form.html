@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% import "components/ui.html" as ui %}
+
+{% set editing = user is not none %}
+
+{% block title %}{{ "Editar usuario" if editing else "Nuevo usuario" }} · Rifa{% endblock %}
+
+{% block content %}
+  <div class="mx-auto max-w-xl">
+    <a href="/admin/usuarios" class="text-sm font-medium text-muted hover:text-ink">← Usuarios</a>
+
+    <div class="mt-3">
+      {{ ui.page_header("Editar usuario" if editing else "Nuevo usuario",
+                        "@" ~ user.username if editing else "El usuario podrá entrar con estos datos.") }}
+    </div>
+
+    {% call ui.card("p-5") %}
+      <form method="post" action="{{ '/admin/usuarios/%d/editar' % user.id if editing else '/admin/usuarios/nuevo' }}" class="space-y-4">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+
+        {% if errors.get("form") %}{{ ui.alert(errors.get("form"), "danger") }}{% endif %}
+
+        {{ ui.field("full_name", "Nombre completo", value=values.get("full_name"), error=errors.get("full_name"), required=True,
+                    attrs={"autocomplete": "off"}) }}
+        {{ ui.field("username", "Usuario", value=values.get("username"), error=errors.get("username"), required=True,
+                    hint="Minúsculas, sin espacios. Ej: laura.perez",
+                    attrs={"autocomplete": "off", "autocapitalize": "none", "autocorrect": "off"}) }}
+        {{ ui.field("phone", "Teléfono (opcional)", type="tel", value=values.get("phone"), error=errors.get("phone"),
+                    attrs={"inputmode": "tel"}) }}
+        {{ ui.select("role", "Rol", role_options, selected=values.get("role")) }}
+
+        {% if editing %}
+          {{ ui.checkbox("is_active", "Cuenta activa", checked=values.get("is_active"),
+                         hint="Si la desactivas, el usuario no podrá entrar. Sus ventas se conservan.") }}
+        {% else %}
+          {{ ui.field("password", "Contraseña", type="password", error=errors.get("password"), required=True,
+                      hint="Mínimo 8 caracteres", attrs={"autocomplete": "new-password"}) }}
+        {% endif %}
+
+        <div class="flex flex-col-reverse gap-2 pt-2 sm:flex-row sm:justify-end">
+          {{ ui.button("Cancelar", "secondary", href="/admin/usuarios") }}
+          {{ ui.button("Guardar cambios" if editing else "Crear usuario", type="submit") }}
+        </div>
+      </form>
+    {% endcall %}
+
+    {% if editing %}
+      <div class="mt-6">
+        {% call ui.card("p-5") %}
+          <h2 class="font-bold tracking-tight">Cambiar contraseña</h2>
+          <p class="mt-1 text-sm text-muted">Se cerrarán las sesiones abiertas de este usuario.</p>
+
+          <form method="post" action="/admin/usuarios/{{ user.id }}/password" class="mt-4 space-y-4">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            {{ ui.field("password", "Nueva contraseña", type="password", error=password_errors.get("password"), required=True,
+                        hint="Mínimo 8 caracteres", attrs={"autocomplete": "new-password"}) }}
+            <div class="flex sm:justify-end">
+              {{ ui.button("Cambiar contraseña", "secondary", type="submit") }}
+            </div>
+          </form>
+        {% endcall %}
+      </div>
+    {% endif %}
+  </div>
+{% endblock %}

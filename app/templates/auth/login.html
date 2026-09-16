@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% import "components/ui.html" as ui %}
+
+{% block title %}Iniciar sesión · Rifa{% endblock %}
+
+{% block content %}
+  <div class="mx-auto mt-8 max-w-sm sm:mt-16">
+    <h1 class="text-2xl font-bold tracking-tight">Iniciar sesión</h1>
+    <p class="mt-1 text-sm text-muted">Ingresa con el usuario que te dio el administrador.</p>
+
+    <form method="post" action="/login" class="mt-8 space-y-4">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+
+      {% if error %}{{ ui.alert(error, "danger") }}{% endif %}
+
+      {{ ui.field("username", "Usuario", value=username, required=True,
+                  attrs={"autocomplete": "username", "autocapitalize": "none", "autocorrect": "off", "autofocus": True}) }}
+      {{ ui.field("password", "Contraseña", type="password", required=True,
+                  attrs={"autocomplete": "current-password"}) }}
+
+      <div class="pt-2">{{ ui.button("Entrar", type="submit", full=True) }}</div>
+    </form>
+  </div>
+{% endblock %}

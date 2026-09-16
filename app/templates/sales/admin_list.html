@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% import "components/ui.html" as ui %}
+
+{% block title %}Ventas · Rifa{% endblock %}
+
+{% block content %}
+  {{ ui.page_header("Ventas", "Todas las ventas de la rifa.") }}
+
+  {#- Filtros: se aplican al escribir o cambiar una opción (con HTMX); sin JS, con el botón Filtrar -#}
+  <form method="get" action="/admin/ventas"
+        hx-get="/admin/ventas" hx-target="#results" hx-select="#results" hx-swap="outerHTML"
+        hx-push-url="true" hx-sync="this:replace" hx-trigger="change, input delay:300ms"
+        class="grid grid-cols-2 gap-3 lg:grid-cols-4">
+    <div class="col-span-2 lg:col-span-1">
+      {{ ui.field("q", "Buscar", type="search", value=filters.q,
+                  attrs={"placeholder": "Número, comprador o teléfono", "autocomplete": "off"}) }}
+    </div>
+    {{ ui.select("vendedor", "Vendedor", seller_options, selected=filters.seller_id if filters.seller_id is not none else "") }}
+    {{ ui.select("estado", "Estado", [("todos", "Todos"), ("pagados", "Pagados"), ("pendientes", "Pendientes")], selected=filters.status) }}
+    <div class="col-span-2 lg:col-span-1">
+      {{ ui.select("orden", "Ordenar por", [("recientes", "Más recientes"), ("numero", "Número")], selected=filters.order) }}
+    </div>
+    <noscript><div class="col-span-2 lg:col-span-4">{{ ui.button("Filtrar", type="submit") }}</div></noscript>
+  </form>
+
+  <div id="results" class="mt-6">
+    <div class="mb-3 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 text-sm">
+      <p class="text-muted tabular-nums">
+        <span class="font-semibold text-ink">{{ summary.total }}</span> {{ "venta" if summary.total == 1 else "ventas" }}
+        · {{ summary.collected | money }} recaudado · {{ summary.receivable | money }} por cobrar
+      </p>
+      {% if filters.active %}
+        <a href="/admin/ventas" class="font-medium text-accent hover:text-accent-hover">Limpiar filtros</a>
+      {% endif %}
+    </div>
+
+    {% if not sales %}
+      {% if filters.active %}
+        {{ ui.empty_state("Sin resultados", "No hay ventas que coincidan con los filtros.") }}
+      {% else %}
+        {{ ui.empty_state("Aún no hay ventas", "Las ventas de todos los vendedores aparecerán aquí.") }}
+      {% endif %}
+    {% else %}
+      {% set next_param = current_url | urlencode %}
+
+      {# Móvil #}
+      <ul class="divide-y divide-line rounded-xl border border-line bg-surface md:hidden">
+        {% for sale in sales %}
+          <li>
+            <a href="/ventas/{{ sale.id }}/editar?next={{ next_param }}" class="flex items-center gap-4 p-4 active:bg-subtle">
+              <span class="w-8 text-lg font-bold tabular-nums">{{ sale.number | number }}</span>
+              <div class="min-w-0 flex-1">
+                <p class="truncate font-medium">{{ sale.buyer_name }}</p>
+                <p class="truncate text-sm text-muted">{{ sale.seller.full_name }} · <span class="tabular-nums">{{ sale.buyer_phone }}</span></p>
+              </div>
+              {{ ui.badge("Pagado", "success") if sale.is_paid else ui.badge("Pendiente", "warning") }}
+            </a>
+          </li>
+        {% endfor %}
+      </ul>
+
+      {# Escritorio #}
+      <div class="hidden overflow-hidden rounded-xl border border-line bg-surface md:block">
+        <table class="w-full text-left text-sm">
+          <thead class="border-b border-line bg-subtle/60 text-xs text-muted uppercase">
+            <tr>
+              <th class="px-4 py-3 font-semibold">Número</th>
+              <th class="px-4 py-3 font-semibold">Comprador</th>
+              <th class="px-4 py-3 font-semibold">Teléfono</th>
+              <th class="px-4 py-3 font-semibold">Vendedor</th>
+              <th class="px-4 py-3 font-semibold">Fecha</th>
+              <th class="px-4 py-3 font-semibold">Estado</th>
+              <th class="px-4 py-3"><span class="sr-only">Acciones</span></th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-line">
+            {% for sale in sales %}
+              <tr class="hover:bg-subtle/50">
+                <td class="px-4 py-3 text-base font-bold tabular-nums">{{ sale.number | number }}</td>
+                <td class="px-4 py-3">
+                  <p class="font-medium">{{ sale.buyer_name }}</p>
+                  {% if sale.notes %}<p class="max-w-56 truncate text-xs text-muted" title="{{ sale.notes }}">{{ sale.notes }}</p>{% endif %}
+                </td>
+                <td class="px-4 py-3 text-muted tabular-nums">{{ sale.buyer_phone }}</td>
+                <td class="px-4 py-3">{{ sale.seller.full_name }}</td>
+                <td class="px-4 py-3 whitespace-nowrap text-muted tabular-nums">{{ sale.created_at | datetime }}</td>
+                <td class="px-4 py-3">{{ ui.badge("Pagado", "success") if sale.is_paid else ui.badge("Pendiente", "warning") }}</td>
+                <td class="px-4 py-3 text-right">
+                  <a href="/ventas/{{ sale.id }}/editar?next={{ next_param }}" class="font-medium text-accent hover:text-accent-hover">Editar</a>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% endif %}
+  </div>
+{% endblock %}

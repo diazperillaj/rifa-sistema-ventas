@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+{% import "components/ui.html" as ui %}
+
+{% block title %}Componentes · Rifa{% endblock %}
+
+{% block content %}
+  {% call ui.page_header("Componentes", "Vista previa del diseño. Solo visible en desarrollo.") %}
+    {{ ui.button("Nueva venta") }}
+  {% endcall %}
+
+  {# Estadísticas #}
+  <section class="grid grid-cols-2 gap-3 lg:grid-cols-4">
+    {{ ui.stat("Vendidos", sold | length, "de 100 números") }}
+    {{ ui.stat("Disponibles", 100 - sold | length) }}
+    {{ ui.stat("Recaudado", (ticket_price * 14) | money) }}
+    {{ ui.stat("Por cobrar", (ticket_price * 6) | money) }}
+  </section>
+
+  <div class="mt-4">{{ ui.progress(sold | length, 100) }}</div>
+
+  {# Tablero de números #}
+  <section class="mt-10">
+    <div class="mb-3 flex items-baseline justify-between">
+      <h2 class="text-lg font-bold tracking-tight">Números</h2>
+      <p class="text-sm text-muted tabular-nums">{{ 100 - sold | length }} disponibles · {{ sold | length }} vendidos</p>
+    </div>
+
+    <div class="grid grid-cols-5 gap-2 sm:grid-cols-10">
+      {% for n in range(100) %}
+        {% if n in mine %}
+          <button type="button" disabled
+            class="aspect-square rounded-lg border border-accent bg-accent-soft text-base font-semibold text-accent tabular-nums">
+            {{ n | number }}
+          </button>
+        {% elif n in sold %}
+          <button type="button" disabled
+            class="aspect-square rounded-lg bg-subtle text-base font-medium text-muted/50 line-through tabular-nums">
+            {{ n | number }}
+          </button>
+        {% else %}
+          <button type="button"
+            class="aspect-square rounded-lg border border-line bg-surface text-base font-semibold tabular-nums transition-colors hover:border-accent hover:text-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent">
+            {{ n | number }}
+          </button>
+        {% endif %}
+      {% endfor %}
+    </div>
+
+    <div class="mt-3 flex flex-wrap gap-4 text-xs text-muted">
+      <span class="flex items-center gap-1.5"><span class="size-3 rounded border border-line bg-surface"></span>Disponible</span>
+      <span class="flex items-center gap-1.5"><span class="size-3 rounded border border-accent bg-accent-soft"></span>Mis ventas</span>
+      <span class="flex items-center gap-1.5"><span class="size-3 rounded bg-subtle"></span>Vendido</span>
+    </div>
+  </section>
+
+  {# Formulario #}
+  <section class="mt-10 grid gap-6 lg:grid-cols-2">
+    {% call ui.card("p-5") %}
+      <h2 class="text-lg font-bold tracking-tight">Vender número <span class="text-accent tabular-nums">23</span></h2>
+      <p class="mt-1 text-sm text-muted">Valor {{ ticket_price | money }}</p>
+
+      <form class="mt-5 space-y-4">
+        {{ ui.field("buyer_name", "Nombre del comprador", value="Carlos Gómez", required=True) }}
+        {{ ui.field("buyer_phone", "Teléfono", type="tel", error="Ingresa un teléfono válido", attrs={"inputmode": "tel"}) }}
+        {{ ui.checkbox("is_paid", "Ya pagó", checked=True, hint="Márcalo si recibiste el dinero") }}
+        <div class="flex flex-col-reverse gap-2 pt-2 sm:flex-row sm:justify-end">
+          {{ ui.button("Cancelar", "secondary") }}
+          {{ ui.button("Registrar venta", type="submit") }}
+        </div>
+      </form>
+    {% endcall %}
+
+    <div class="space-y-6">
+      <div class="space-y-3">
+        <h2 class="text-lg font-bold tracking-tight">Alertas</h2>
+        {{ ui.alert("Venta registrada: número 23 para Carlos Gómez.", "success") }}
+        {{ ui.alert("Este número ya fue vendido por otro vendedor.", "danger") }}
+        {{ ui.alert("Tienes 2 ventas pendientes de pago.", "warning") }}
+      </div>
+
+      <div class="space-y-3">
+        <h2 class="text-lg font-bold tracking-tight">Botones y etiquetas</h2>
+        <div class="flex flex-wrap gap-2">
+          {{ ui.button("Principal") }}
+          {{ ui.button("Secundario", "secondary") }}
+          {{ ui.button("Discreto", "ghost") }}
+          {{ ui.button("Eliminar", "danger") }}
+        </div>
+        <div class="flex flex-wrap gap-2">
+          {{ ui.badge("Pagado", "success") }}
+          {{ ui.badge("Pendiente", "warning") }}
+          {{ ui.badge("Admin", "accent") }}
+          {{ ui.badge("Inactivo") }}
+        </div>
+      </div>
+
+      {{ ui.select("seller", "Vendedor", [("", "Todos"), ("1", "Laura"), ("2", "Luis")], selected="") }}
+    </div>
+  </section>
+
+  {# Lista de ventas: tarjetas en móvil, tabla en escritorio #}
+  <section class="mt-10">
+    <h2 class="mb-3 text-lg font-bold tracking-tight">Últimos vendidos</h2>
+
+    <ul class="divide-y divide-line rounded-xl border border-line bg-surface md:hidden">
+      {% for s in sales %}
+        <li class="flex items-center gap-4 p-4">
+          <span class="w-8 text-lg font-bold tabular-nums">{{ s.number | number }}</span>
+          <div class="min-w-0 flex-1">
+            <p class="truncate font-medium">{{ s.buyer }}</p>
+            <p class="text-sm text-muted">{{ s.seller }} · {{ s.time }}</p>
+          </div>
+          {{ ui.badge("Pagado", "success") if s.paid else ui.badge("Pendiente", "warning") }}
+        </li>
+      {% endfor %}
+    </ul>
+
+    <div class="hidden overflow-hidden rounded-xl border border-line bg-surface md:block">
+      <table class="w-full text-left text-sm">
+        <thead class="border-b border-line bg-subtle/60 text-xs text-muted uppercase">
+          <tr>
+            <th class="px-4 py-3 font-semibold">Número</th>
+            <th class="px-4 py-3 font-semibold">Comprador</th>
+            <th class="px-4 py-3 font-semibold">Teléfono</th>
+            <th class="px-4 py-3 font-semibold">Vendedor</th>
+            <th class="px-4 py-3 font-semibold">Hora</th>
+            <th class="px-4 py-3 font-semibold">Estado</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-line">
+          {% for s in sales %}
+            <tr class="hover:bg-subtle/50">
+              <td class="px-4 py-3 text-base font-bold tabular-nums">{{ s.number | number }}</td>
+              <td class="px-4 py-3 font-medium">{{ s.buyer }}</td>
+              <td class="px-4 py-3 text-muted tabular-nums">{{ s.phone }}</td>
+              <td class="px-4 py-3">{{ s.seller }}</td>
+              <td class="px-4 py-3 text-muted tabular-nums">{{ s.time }}</td>
+              <td class="px-4 py-3">{{ ui.badge("Pagado", "success") if s.paid else ui.badge("Pendiente", "warning") }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="mt-10">
+    {{ ui.empty_state("Aún no tienes ventas", "Elige un número disponible para registrar tu primera venta.") }}
+  </section>
+{% endblock %}

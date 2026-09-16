@@ -1,0 +1,142 @@
+{#- Componentes reutilizables. Uso: {% import "components/ui.html" as ui %} -#}
+
+{% macro button(label, variant="primary", type="button", href=None, full=False, attrs={}) -%}
+  {%- set variants = {
+    "primary": "bg-accent text-white hover:bg-accent-hover",
+    "secondary": "border border-line bg-surface text-ink hover:bg-subtle",
+    "ghost": "text-muted hover:bg-subtle hover:text-ink",
+    "danger": "border border-line bg-surface text-danger hover:border-danger/30 hover:bg-danger/5",
+  } -%}
+  {%- set cls = "inline-flex h-11 items-center justify-center gap-2 rounded-lg px-4 text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:pointer-events-none disabled:opacity-50 " ~ variants[variant] ~ (" w-full" if full else "") -%}
+  {%- if href -%}
+    <a href="{{ href }}" class="{{ cls }}" {{ attrs | xmlattr }}>{{ label }}</a>
+  {%- else -%}
+    <button type="{{ type }}" class="{{ cls }}" {{ attrs | xmlattr }}>{{ label }}</button>
+  {%- endif -%}
+{%- endmacro %}
+
+
+{% macro field(name, label, type="text", value="", error=None, hint=None, required=False, attrs={}) -%}
+  <div class="space-y-1.5">
+    <label for="f-{{ name }}" class="block text-sm font-medium">{{ label }}</label>
+    <input id="f-{{ name }}" name="{{ name }}" type="{{ type }}" value="{{ value if value is not none else '' }}"
+      {% if required %}required{% endif %}
+      {% if error %}aria-invalid="true" aria-describedby="f-{{ name }}-msg"{% endif %}
+      class="block h-11 w-full rounded-lg border bg-surface px-3 text-base text-ink transition-colors placeholder:text-muted/60 focus:ring-4 focus:outline-none {{ 'border-danger focus:ring-danger/10' if error else 'border-line focus:border-accent focus:ring-accent/10' }}"
+      {{ attrs | xmlattr }}>
+    {% if error %}
+      <p id="f-{{ name }}-msg" class="text-sm text-danger">{{ error }}</p>
+    {% elif hint %}
+      <p class="text-sm text-muted">{{ hint }}</p>
+    {% endif %}
+  </div>
+{%- endmacro %}
+
+
+{% macro textarea(name, label, value="", error=None, hint=None, rows=2) -%}
+  <div class="space-y-1.5">
+    <label for="f-{{ name }}" class="block text-sm font-medium">{{ label }}</label>
+    <textarea id="f-{{ name }}" name="{{ name }}" rows="{{ rows }}"
+      class="block w-full rounded-lg border bg-surface px-3 py-2.5 text-base text-ink transition-colors focus:ring-4 focus:outline-none {{ 'border-danger focus:ring-danger/10' if error else 'border-line focus:border-accent focus:ring-accent/10' }}"
+      >{{ value if value is not none else '' }}</textarea>
+    {% if error %}
+      <p class="text-sm text-danger">{{ error }}</p>
+    {% elif hint %}
+      <p class="text-sm text-muted">{{ hint }}</p>
+    {% endif %}
+  </div>
+{%- endmacro %}
+
+
+{% macro select(name, label, options, selected=None, attrs={}) -%}
+  {#- options: lista de (valor, texto) -#}
+  <div class="space-y-1.5">
+    <label for="f-{{ name }}" class="block text-sm font-medium">{{ label }}</label>
+    <select id="f-{{ name }}" name="{{ name }}"
+      class="block h-11 w-full rounded-lg border border-line bg-surface px-3 text-base text-ink focus:border-accent focus:ring-4 focus:ring-accent/10 focus:outline-none"
+      {{ attrs | xmlattr }}>
+      {% for value, text in options %}
+        <option value="{{ value }}" {% if value | string == selected | string %}selected{% endif %}>{{ text }}</option>
+      {% endfor %}
+    </select>
+  </div>
+{%- endmacro %}
+
+
+{% macro checkbox(name, label, checked=False, hint=None) -%}
+  <label class="flex cursor-pointer items-start gap-3 rounded-lg border border-line bg-surface p-3 transition-colors hover:bg-subtle has-checked:border-accent has-checked:bg-accent-soft">
+    <input type="checkbox" name="{{ name }}" value="1" {% if checked %}checked{% endif %}
+      class="mt-0.5 size-5 shrink-0 accent-accent">
+    <span>
+      <span class="block text-sm font-medium">{{ label }}</span>
+      {% if hint %}<span class="block text-sm text-muted">{{ hint }}</span>{% endif %}
+    </span>
+  </label>
+{%- endmacro %}
+
+
+{% macro alert(message, variant="info") -%}
+  {%- set variants = {
+    "info": "border-line bg-surface text-ink",
+    "success": "border-success/20 bg-success/5 text-success",
+    "warning": "border-warning/20 bg-warning/5 text-warning",
+    "danger": "border-danger/20 bg-danger/5 text-danger",
+  } -%}
+  <div role="{{ 'alert' if variant == 'danger' else 'status' }}" class="rounded-lg border px-4 py-3 text-sm {{ variants[variant] }}">
+    {{ message }}
+  </div>
+{%- endmacro %}
+
+
+{% macro badge(text, variant="neutral") -%}
+  {%- set variants = {
+    "neutral": "bg-subtle text-muted",
+    "accent": "bg-accent-soft text-accent",
+    "success": "bg-success/10 text-success",
+    "warning": "bg-warning/10 text-warning",
+    "danger": "bg-danger/10 text-danger",
+  } -%}
+  <span class="inline-flex items-center rounded-md px-2 py-0.5 text-xs font-semibold {{ variants[variant] }}">{{ text }}</span>
+{%- endmacro %}
+
+
+{% macro page_header(title, subtitle=None) -%}
+  <div class="mb-6 flex flex-wrap items-end justify-between gap-4">
+    <div>
+      <h1 class="text-2xl font-bold tracking-tight">{{ title }}</h1>
+      {% if subtitle %}<p class="mt-1 text-sm text-muted">{{ subtitle }}</p>{% endif %}
+    </div>
+    {% if caller %}<div class="flex gap-2">{{ caller() }}</div>{% endif %}
+  </div>
+{%- endmacro %}
+
+
+{% macro card(extra="") -%}
+  <div class="rounded-xl border border-line bg-surface {{ extra }}">{{ caller() }}</div>
+{%- endmacro %}
+
+
+{% macro stat(label, value, hint=None) -%}
+  <div class="rounded-xl border border-line bg-surface p-4">
+    <p class="text-sm text-muted">{{ label }}</p>
+    <p class="mt-1 text-2xl font-bold tracking-tight tabular-nums">{{ value }}</p>
+    {% if hint %}<p class="mt-1 text-xs text-muted">{{ hint }}</p>{% endif %}
+  </div>
+{%- endmacro %}
+
+
+{% macro progress(value, total) -%}
+  {%- set pct = (value / total * 100) | round | int if total else 0 -%}
+  <div class="h-2 w-full overflow-hidden rounded-full bg-subtle" role="progressbar"
+       aria-valuenow="{{ pct }}" aria-valuemin="0" aria-valuemax="100">
+    <div class="h-full rounded-full bg-accent" style="width: {{ pct }}%"></div>
+  </div>
+{%- endmacro %}
+
+
+{% macro empty_state(title, text=None) -%}
+  <div class="rounded-xl border border-dashed border-line px-6 py-12 text-center">
+    <p class="font-semibold">{{ title }}</p>
+    {% if text %}<p class="mt-1 text-sm text-muted">{{ text }}</p>{% endif %}
+  </div>
+{%- endmacro %}
