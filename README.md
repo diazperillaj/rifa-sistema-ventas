@@ -22,6 +22,14 @@ Aplicación web para registrar y controlar la venta de números de una rifa de 1
 
 La base de datos impide que un mismo número se venda dos veces, incluso si dos vendedores lo registran al mismo tiempo.
 
+## Capturas
+
+<!-- Agregar las imágenes en docs/screenshots/ -->
+
+| Tablero de números | Panel de administración |
+|---|---|
+| ![Tablero](docs/screenshots/tablero.png) | ![Panel](docs/screenshots/panel.png) |
+
 ## Tecnologías
 
 - Python 3.12, FastAPI y Jinja2
@@ -30,6 +38,25 @@ La base de datos impide que un mismo número se venda dos veces, incluso si dos 
 - PostgreSQL 16, SQLAlchemy 2 y Alembic
 - Nginx
 - Docker Compose
+
+## Arquitectura
+
+```
+Internet → Nginx (rifa-web) → FastAPI (rifa-app) → PostgreSQL (rifa-db)
+```
+
+Tres contenedores con healthchecks y arranque ordenado. Solo Nginx se conecta a la red externa del proxy inverso; la aplicación y la base de datos quedan en una red interna y no publican puertos en el host.
+
+La aplicación se organiza por dominio. Cada módulo de `app/api/v1/` separa las rutas (HTTP y permisos), los servicios (lógica de negocio y acceso a datos) y los esquemas (validación de formularios con Pydantic), de modo que la lógica de negocio no depende de HTTP ni de las plantillas.
+
+## Seguridad
+
+- Sesiones en cookie firmada, con marca `Secure` en producción.
+- Contraseñas almacenadas con Argon2.
+- Protección CSRF aplicada como dependencia global a toda petición que modifica datos.
+- Limitación de intentos de inicio de sesión por IP y usuario.
+- Cambiar una contraseña o desactivar una cuenta invalida las sesiones abiertas de ese usuario.
+- Los permisos se verifican en el backend. Las operaciones sobre ventas ajenas responden 404 para no revelar su existencia.
 
 ## Estructura
 
@@ -47,7 +74,8 @@ La base de datos impide que un mismo número se venda dos veces, incluso si dos 
 ├── docker/               # Dockerfile de la aplicación y configuración de Nginx
 ├── migrations/           # Migraciones de Alembic
 ├── scripts/              # Creación de administrador y backups
-└── tailwind/             # Hoja de estilos y paleta de colores
+├── tailwind/             # Hoja de estilos y paleta de colores
+└── docs/                 # Capturas de pantalla
 ```
 
 ## Instalación con Docker
@@ -129,3 +157,7 @@ gunzip -c backups/<archivo>.sql.gz | docker exec -i rifa-db sh -c 'psql -U "$POS
 ## Personalización
 
 Los colores y la tipografía se definen en `tailwind/input.css`. Los cambios se aplican al reconstruir la imagen con `--build`.
+
+## Licencia
+
+MIT. Ver [LICENSE](LICENSE).
